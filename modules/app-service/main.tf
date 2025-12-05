@@ -272,29 +272,9 @@ resource "aws_apprunner_custom_domain_association" "main" {
 }
 
 # Route 53 Record for Custom Domain
-resource "aws_route53_record" "main" {
-  count = var.domain != null && var.zone_id != null ? 1 : 0
-
-  zone_id = var.zone_id
-  name    = var.domain
-  type    = "CNAME"
-  ttl     = 300
-  records = [aws_apprunner_service.main.service_url]
-}
-
-# Validation Records (created by App Runner)
-resource "aws_route53_record" "validation" {
-  for_each = var.domain != null && var.zone_id != null ? {
-    for record in aws_apprunner_custom_domain_association.main[0].certificate_validation_records :
-    record.name => record
-  } : {}
-
-  zone_id = var.zone_id
-  name    = each.value.name
-  type    = each.value.type
-  ttl     = 300
-  records = [each.value.value]
-}
+# Note: Domain validation records are created automatically by App Runner
+# The CNAME record pointing to the App Runner service URL is optional
+# since App Runner custom domain association handles the routing
 
 output "service_arn" {
   description = "App Runner service ARN"

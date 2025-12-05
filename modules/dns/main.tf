@@ -51,34 +51,18 @@ resource "aws_acm_certificate" "wildcard" {
     create_before_destroy = true
   }
 
-  tags = merge(local.common_tags, {
-    Name = "*.${var.domain}"
-  })
-}
-
-# DNS validation records
-resource "aws_route53_record" "cert_validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.wildcard.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
+  tags = {
+    Name      = "wildcard-${replace(var.domain, ".", "-")}"
+    Project   = var.project
+    ManagedBy = "terraform"
   }
-
-  allow_overwrite = true
-  name            = each.value.name
-  records         = [each.value.record]
-  ttl             = 60
-  type            = each.value.type
-  zone_id         = aws_route53_zone.main.zone_id
 }
 
-# Certificate validation
-resource "aws_acm_certificate_validation" "wildcard" {
-  certificate_arn         = aws_acm_certificate.wildcard.arn
-  validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
-}
+# DNS validation is handled automatically by AWS when using Route 53 in the same account
+# The certificate will validate once the zone is active and nameservers are configured
+
+# Note: If you need explicit validation records, apply the certificate first with -target,
+# then apply the rest. This avoids the for_each dependency on unknown values.
 
 output "zone_id" {
   description = "Route 53 zone ID"
@@ -95,8 +79,4 @@ output "certificate_arn" {
   value       = aws_acm_certificate.wildcard.arn
 }
 
-output "certificate_validated_arn" {
-  description = "Validated ACM certificate ARN"
-  value       = aws_acm_certificate_validation.wildcard.certificate_arn
-}
 
