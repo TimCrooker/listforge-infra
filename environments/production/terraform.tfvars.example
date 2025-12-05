@@ -1,0 +1,21 @@
+# Production Environment Variables
+# Copy this file to terraform.tfvars and fill in your values
+
+aws_region  = "us-east-1"
+project     = "listforge"
+environment = "production"
+domain      = "list-forge.ai"
+
+# Database
+db_instance_class    = "db.t3.micro"
+db_allocated_storage = 20
+
+# Cache
+cache_node_type = "cache.t3.micro"
+
+# Storage
+storage_bucket_suffix = "" # Leave empty or add unique suffix
+
+# Secrets - Generate with: openssl rand -base64 32
+jwt_secret = "your-jwt-secret-here"
+
