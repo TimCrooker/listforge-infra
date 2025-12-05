@@ -44,6 +44,7 @@ jobs:
       - name: Terraform Plan
         env:
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+          TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
         run: terraform plan -no-color -out=tfplan
         continue-on-error: true
 
@@ -55,13 +56,13 @@ jobs:
           script: |
             const fs = require('fs');
             const output = `#### Terraform Plan 📖
-            
+
             \`\`\`
             ${{ steps.plan.outputs.stdout || 'Plan output not available' }}
             \`\`\`
-            
+
             *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
