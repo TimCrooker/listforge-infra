@@ -44,7 +44,6 @@ jobs:
       - name: Terraform Plan
         env:
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
-          TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
         run: terraform plan -no-color -out=tfplan
         continue-on-error: true
 
