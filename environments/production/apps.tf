@@ -18,7 +18,8 @@ locals {
     REDIS_URL    = module.cache.connection_url
     JWT_SECRET   = var.jwt_secret
     FRONTEND_URL = "https://${var.domain}"
-    # External API keys (OPENAI_API_KEY, etc.) should be set via 
+    LOG_LEVEL    = "info"  # Infra-managed logging config
+    # External API keys (OPENAI_API_KEY, etc.) should be set via
     # App Runner console or CI/CD, not Terraform
   })
 
