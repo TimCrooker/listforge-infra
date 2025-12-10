@@ -61,6 +61,21 @@ locals {
   }
 }
 
+# Custom Parameter Group for BullMQ compatibility
+resource "aws_elasticache_parameter_group" "bullmq" {
+  family      = "redis7"
+  name        = "${local.name_prefix}-redis-bullmq"
+  description = "Custom parameter group for BullMQ with noeviction policy"
+
+  # Required for BullMQ - prevents eviction of job queue data
+  parameter {
+    name  = "maxmemory-policy"
+    value = "noeviction"
+  }
+
+  tags = local.common_tags
+}
+
 # Subnet Group
 resource "aws_elasticache_subnet_group" "main" {
   name       = "${local.name_prefix}-cache-subnet-group"
@@ -76,7 +91,7 @@ resource "aws_elasticache_cluster" "main" {
   engine_version       = var.engine_version
   node_type            = var.node_type
   num_cache_nodes      = var.num_cache_nodes
-  parameter_group_name = "default.redis7"
+  parameter_group_name = aws_elasticache_parameter_group.bullmq.name
   port                 = 6379
 
   subnet_group_name  = aws_elasticache_subnet_group.main.name
@@ -105,4 +120,3 @@ output "connection_url" {
   description = "Redis connection URL"
   value       = "redis://${aws_elasticache_cluster.main.cache_nodes[0].address}:${aws_elasticache_cluster.main.cache_nodes[0].port}"
 }
-
