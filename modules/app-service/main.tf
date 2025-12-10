@@ -179,7 +179,7 @@ resource "aws_apprunner_custom_domain_association" "main" {
 # Note: App Runner custom domain association automatically manages DNS records:
 # - For apex domains (list-forge.ai): Creates multiple A records
 # - For subdomains (api.list-forge.ai): Requires CNAME record pointing to service URL
-# 
+#
 # The CNAME is only needed for subdomains, and only if not automatically created.
 # In practice, App Runner handles both cases, so we don't need to create records manually.
 # Keeping this resource commented out to document the behavior.
