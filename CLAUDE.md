@@ -94,5 +94,18 @@ Terraform state is stored in S3 with DynamoDB locking:
 - AWS Region: `us-east-1`
 - Domain: `list-forge.ai`
 - Database: `db.t3.micro` PostgreSQL 15
-- Cache: `cache.t3.micro` Redis 7.0
+- Cache: `cache.t3.micro` Redis 7.0 (with `noeviction` policy for BullMQ)
 - App Runner: 256 CPU / 512 MB memory per instance
+- Auto-scaling: 1-3 instances per service
+
+## Managed Resources (43 total)
+
+Key infrastructure components managed by Terraform:
+- App Runner services (API, Web)
+- RDS PostgreSQL database
+- ElastiCache Redis cluster with custom parameter group
+- S3 uploads bucket
+- Route53 DNS zone and ACM certificate
+- ECR repositories
+- VPC connector and security groups
+- IAM roles and policies
