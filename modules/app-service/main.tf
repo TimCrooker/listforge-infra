@@ -175,16 +175,20 @@ resource "aws_apprunner_custom_domain_association" "main" {
   enable_www_subdomain = false
 }
 
-# Route 53 CNAME Record for Custom Domain
-# This is REQUIRED for the domain to actually resolve to the App Runner service
-# For subdomain (api.list-forge.ai), this creates a CNAME record
-# Note: CNAME records cannot be used for apex domains due to DNS protocol limitations
-resource "aws_route53_record" "custom_domain" {
-  count = var.domain != null && var.zone_id != null ? 1 : 0
-
-  zone_id = var.zone_id
-  name    = var.domain
-  type    = "CNAME"
-  ttl     = 300
-  records = [aws_apprunner_service.main.service_url]
-}
+# Route 53 Records for Custom Domain
+# Note: App Runner custom domain association automatically manages DNS records:
+# - For apex domains (list-forge.ai): Creates multiple A records
+# - For subdomains (api.list-forge.ai): Requires CNAME record pointing to service URL
+# 
+# The CNAME is only needed for subdomains, and only if not automatically created.
+# In practice, App Runner handles both cases, so we don't need to create records manually.
+# Keeping this resource commented out to document the behavior.
+#
+# resource "aws_route53_record" "custom_domain" {
+#   count = var.domain != null && var.zone_id != null && !var.is_apex_domain ? 1 : 0
+#   zone_id = var.zone_id
+#   name    = var.domain
+#   type    = "CNAME"
+#   ttl     = 300
+#   records = [aws_apprunner_service.main.service_url]
+# }
