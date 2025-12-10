@@ -16,6 +16,8 @@ cache_node_type = "cache.t3.micro"
 # Storage
 storage_bucket_suffix = "" # Leave empty or add unique suffix
 
-# Secrets - Generate with: openssl rand -base64 32
-jwt_secret = "your-jwt-secret-here"
+# Secrets - Generate with appropriate commands
+jwt_secret       = "your-jwt-secret-here"       # openssl rand -base64 32
+openai_api_key   = "sk-proj-your-key-here"      # From OpenAI dashboard
+encryption_key   = "your-encryption-key-here"    # openssl rand -hex 32
 

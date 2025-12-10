@@ -58,3 +58,15 @@ variable "jwt_secret" {
   sensitive   = true
 }
 
+variable "openai_api_key" {
+  description = "OpenAI API key for AI features"
+  type        = string
+  sensitive   = true
+}
+
+variable "encryption_key" {
+  description = "Encryption key for sensitive data (32-byte hex string)"
+  type        = string
+  sensitive   = true
+}
+

@@ -11,16 +11,16 @@ locals {
   }
 
   # API-specific environment
-  # Only infrastructure-related vars that Terraform owns/provisions
   api_env = merge(local.common_env, {
-    PORT         = "3001"
-    DATABASE_URL = module.database.connection_url
-    REDIS_URL    = module.cache.connection_url
-    JWT_SECRET   = var.jwt_secret
-    FRONTEND_URL = "https://${var.domain}"
-    LOG_LEVEL    = "info" # Infra-managed logging config
-    # External API keys (OPENAI_API_KEY, etc.) should be set via
-    # App Runner console or CI/CD, not Terraform
+    PORT                         = "3001"
+    DATABASE_URL                 = module.database.connection_url
+    REDIS_URL                    = module.cache.connection_url
+    JWT_SECRET                   = var.jwt_secret
+    FRONTEND_URL                 = "https://${var.domain}"
+    LOG_LEVEL                    = "info"
+    OPENAI_API_KEY               = var.openai_api_key
+    ENCRYPTION_KEY               = var.encryption_key
+    NODE_TLS_REJECT_UNAUTHORIZED = "0" # Required for RDS SSL connection
   })
 
   # Web-specific environment (mostly static, API URL baked in at build time)
