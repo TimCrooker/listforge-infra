@@ -93,8 +93,9 @@ module "cache" {
 module "storage" {
   source = "../../modules/storage"
 
-  project       = var.project
-  environment   = var.environment
-  bucket_suffix = var.storage_bucket_suffix
+  project              = var.project
+  environment          = var.environment
+  bucket_suffix        = var.storage_bucket_suffix
+  cors_allowed_origins = ["https://${var.domain}", "https://api.${var.domain}"]
 }
 

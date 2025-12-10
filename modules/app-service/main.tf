@@ -1,106 +1,5 @@
 # App Service Module - Reusable App Runner Service
 
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
-
-variable "name" {
-  description = "Service name"
-  type        = string
-}
-
-variable "project" {
-  description = "Project name"
-  type        = string
-}
-
-variable "environment" {
-  description = "Environment name"
-  type        = string
-}
-
-variable "image" {
-  description = "Docker image URI"
-  type        = string
-}
-
-variable "port" {
-  description = "Container port"
-  type        = number
-  default     = 3000
-}
-
-variable "cpu" {
-  description = "CPU allocation (256, 512, 1024, 2048, 4096)"
-  type        = string
-  default     = "256"
-}
-
-variable "memory" {
-  description = "Memory allocation (512, 1024, 2048, 3072, 4096, 6144, 8192, 10240, 12288)"
-  type        = string
-  default     = "512"
-}
-
-variable "environment_variables" {
-  description = "Environment variables for the service"
-  type        = map(string)
-  default     = {}
-}
-
-variable "secrets" {
-  description = "Secrets from AWS Secrets Manager (map of name to ARN)"
-  type        = map(string)
-  default     = {}
-}
-
-variable "vpc_connector_arn" {
-  description = "VPC Connector ARN for private networking"
-  type        = string
-  default     = null
-}
-
-variable "domain" {
-  description = "Custom domain for the service"
-  type        = string
-  default     = null
-}
-
-variable "zone_id" {
-  description = "Route 53 zone ID for custom domain"
-  type        = string
-  default     = null
-}
-
-variable "health_check_path" {
-  description = "Health check path"
-  type        = string
-  default     = "/"
-}
-
-variable "auto_deployments_enabled" {
-  description = "Enable auto deployments from ECR"
-  type        = bool
-  default     = true
-}
-
-variable "min_size" {
-  description = "Minimum number of instances"
-  type        = number
-  default     = 1
-}
-
-variable "max_size" {
-  description = "Maximum number of instances"
-  type        = number
-  default     = 3
-}
-
 locals {
   common_tags = {
     Project     = var.project
@@ -155,10 +54,11 @@ resource "aws_iam_role" "instance" {
   tags = local.common_tags
 }
 
-# S3 access for instance
+# S3 access for instance (only created if bucket ARN is provided)
 resource "aws_iam_role_policy" "instance_s3" {
-  name = "${var.name}-s3-access"
-  role = aws_iam_role.instance.id
+  count = var.s3_bucket_arn != null ? 1 : 0
+  name  = "${var.name}-s3-access"
+  role  = aws_iam_role.instance.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -168,10 +68,14 @@ resource "aws_iam_role_policy" "instance_s3" {
         Action = [
           "s3:GetObject",
           "s3:PutObject",
-          "s3:DeleteObject",
-          "s3:ListBucket"
+          "s3:DeleteObject"
         ]
-        Resource = ["*"]
+        Resource = ["${var.s3_bucket_arn}/*"]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket"]
+        Resource = [var.s3_bucket_arn]
       }
     ]
   })
@@ -271,38 +175,16 @@ resource "aws_apprunner_custom_domain_association" "main" {
   enable_www_subdomain = false
 }
 
-# Route 53 Record for Custom Domain
-# Note: Domain validation records are created automatically by App Runner
-# The CNAME record pointing to the App Runner service URL is optional
-# since App Runner custom domain association handles the routing
+# Route 53 CNAME Record for Custom Domain
+# This is REQUIRED for the domain to actually resolve to the App Runner service
+# For subdomain (api.list-forge.ai), this creates a CNAME record
+# Note: CNAME records cannot be used for apex domains due to DNS protocol limitations
+resource "aws_route53_record" "custom_domain" {
+  count = var.domain != null && var.zone_id != null ? 1 : 0
 
-output "service_arn" {
-  description = "App Runner service ARN"
-  value       = aws_apprunner_service.main.arn
+  zone_id = var.zone_id
+  name    = var.domain
+  type    = "CNAME"
+  ttl     = 300
+  records = [aws_apprunner_service.main.service_url]
 }
-
-output "service_id" {
-  description = "App Runner service ID"
-  value       = aws_apprunner_service.main.service_id
-}
-
-output "service_url" {
-  description = "App Runner service URL"
-  value       = aws_apprunner_service.main.service_url
-}
-
-output "custom_domain" {
-  description = "Custom domain (if configured)"
-  value       = var.domain
-}
-
-output "ecr_access_role_arn" {
-  description = "ECR access role ARN"
-  value       = aws_iam_role.ecr_access.arn
-}
-
-output "instance_role_arn" {
-  description = "Instance role ARN"
-  value       = aws_iam_role.instance.arn
-}
-

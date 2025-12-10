@@ -1,75 +1,5 @@
 # Database Module - RDS PostgreSQL
 
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
-
-variable "project" {
-  description = "Project name"
-  type        = string
-}
-
-variable "environment" {
-  description = "Environment name"
-  type        = string
-}
-
-variable "vpc_id" {
-  description = "VPC ID"
-  type        = string
-}
-
-variable "subnet_ids" {
-  description = "Subnet IDs for database"
-  type        = list(string)
-}
-
-variable "security_group_id" {
-  description = "Security group ID"
-  type        = string
-}
-
-variable "instance_class" {
-  description = "RDS instance class"
-  type        = string
-  default     = "db.t3.micro"
-}
-
-variable "allocated_storage" {
-  description = "Allocated storage in GB"
-  type        = number
-  default     = 20
-}
-
-variable "engine_version" {
-  description = "PostgreSQL engine version"
-  type        = string
-  default     = "15"
-}
-
-variable "database_name" {
-  description = "Database name"
-  type        = string
-  default     = "listforge"
-}
-
-variable "master_username" {
-  description = "Master username"
-  type        = string
-  default     = "listforge"
-}
-
-variable "publicly_accessible" {
-  description = "Whether database is publicly accessible"
-  type        = bool
-  default     = true  # For App Runner access without VPC peering
-}
-
 locals {
   name_prefix = "${var.project}-${var.environment}"
   common_tags = {
@@ -78,6 +8,10 @@ locals {
     ManagedBy   = "terraform"
   }
 }
+
+# =============================================================================
+# SECRETS
+# =============================================================================
 
 # Generate random password
 resource "random_password" "master" {
@@ -96,6 +30,10 @@ resource "aws_secretsmanager_secret_version" "db_password" {
   secret_id     = aws_secretsmanager_secret.db_password.id
   secret_string = random_password.master.result
 }
+
+# =============================================================================
+# NETWORKING
+# =============================================================================
 
 # DB Subnet Group
 resource "aws_db_subnet_group" "main" {
@@ -134,7 +72,10 @@ resource "aws_security_group" "db_public" {
   })
 }
 
-# RDS Instance
+# =============================================================================
+# RDS INSTANCE
+# =============================================================================
+
 resource "aws_db_instance" "main" {
   identifier = "${local.name_prefix}-db"
 
@@ -170,40 +111,3 @@ resource "aws_db_instance" "main" {
     Name = "${local.name_prefix}-db"
   })
 }
-
-output "endpoint" {
-  description = "Database endpoint"
-  value       = aws_db_instance.main.endpoint
-}
-
-output "address" {
-  description = "Database address"
-  value       = aws_db_instance.main.address
-}
-
-output "port" {
-  description = "Database port"
-  value       = aws_db_instance.main.port
-}
-
-output "database_name" {
-  description = "Database name"
-  value       = aws_db_instance.main.db_name
-}
-
-output "username" {
-  description = "Master username"
-  value       = aws_db_instance.main.username
-}
-
-output "password_secret_arn" {
-  description = "ARN of the password secret"
-  value       = aws_secretsmanager_secret.db_password.arn
-}
-
-output "connection_url" {
-  description = "Database connection URL"
-  value       = "postgresql://${aws_db_instance.main.username}:${random_password.master.result}@${aws_db_instance.main.endpoint}/${aws_db_instance.main.db_name}?sslmode=require"
-  sensitive   = true
-}
-

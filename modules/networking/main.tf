@@ -19,17 +19,9 @@ variable "environment" {
   type        = string
 }
 
-variable "vpc_cidr" {
-  description = "CIDR block for VPC"
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
-variable "availability_zones" {
-  description = "List of availability zones"
-  type        = list(string)
-  default     = ["us-east-1a", "us-east-1b"]
-}
+# Note: vpc_cidr and availability_zones removed as unused.
+# This module uses the default VPC. For a custom VPC, add these back
+# and replace the data sources with aws_vpc and aws_subnet resources.
 
 locals {
   name_prefix = "${var.project}-${var.environment}"

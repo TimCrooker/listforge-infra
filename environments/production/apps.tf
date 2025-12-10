@@ -18,7 +18,7 @@ locals {
     REDIS_URL    = module.cache.connection_url
     JWT_SECRET   = var.jwt_secret
     FRONTEND_URL = "https://${var.domain}"
-    LOG_LEVEL    = "info"  # Infra-managed logging config
+    LOG_LEVEL    = "info" # Infra-managed logging config
     # External API keys (OPENAI_API_KEY, etc.) should be set via
     # App Runner console or CI/CD, not Terraform
   })
@@ -44,13 +44,14 @@ module "api" {
   project     = var.project
   environment = var.environment
 
-  image = "${local.ecr_registry}/listforge-api:latest"
-  port  = 3001
-  cpu   = "256"
+  image  = "${local.ecr_registry}/listforge-api:latest"
+  port   = 3001
+  cpu    = "256"
   memory = "512"
 
   environment_variables = local.api_env
   vpc_connector_arn     = module.networking.vpc_connector_arn
+  s3_bucket_arn         = module.storage.bucket_arn
 
   domain  = "api.${var.domain}"
   zone_id = module.dns.zone_id
@@ -68,9 +69,9 @@ module "web" {
   project     = var.project
   environment = var.environment
 
-  image = "${local.ecr_registry}/listforge-web:latest"
-  port  = 80
-  cpu   = "256"
+  image  = "${local.ecr_registry}/listforge-web:latest"
+  port   = 80
+  cpu    = "256"
   memory = "512"
 
   environment_variables = local.web_env

@@ -25,6 +25,12 @@ variable "bucket_suffix" {
   default     = ""
 }
 
+variable "cors_allowed_origins" {
+  description = "List of allowed origins for CORS"
+  type        = list(string)
+  default     = ["*"]
+}
+
 locals {
   name_prefix = "${var.project}-${var.environment}"
   bucket_name = var.bucket_suffix != "" ? "${local.name_prefix}-uploads-${var.bucket_suffix}" : "${local.name_prefix}-uploads"
@@ -75,7 +81,7 @@ resource "aws_s3_bucket_public_access_block" "uploads" {
 
 # Bucket policy for public read
 resource "aws_s3_bucket_policy" "uploads_public_read" {
-  bucket = aws_s3_bucket.uploads.id
+  bucket     = aws_s3_bucket.uploads.id
   depends_on = [aws_s3_bucket_public_access_block.uploads]
 
   policy = jsonencode({
@@ -99,7 +105,7 @@ resource "aws_s3_bucket_cors_configuration" "uploads" {
   cors_rule {
     allowed_headers = ["*"]
     allowed_methods = ["GET", "PUT", "POST"]
-    allowed_origins = ["*"]
+    allowed_origins = var.cors_allowed_origins
     expose_headers  = ["ETag"]
     max_age_seconds = 3000
   }

@@ -33,39 +33,101 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Terraform Format Check
+        id: fmt
         run: terraform fmt -check -recursive ../..
+        continue-on-error: true
 
       - name: Terraform Init
+        id: init
         run: terraform init
 
       - name: Terraform Validate
-        run: terraform validate
+        id: validate
+        run: terraform validate -no-color
 
       - name: Terraform Plan
+        id: plan
         env:
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
-        run: terraform plan -no-color -out=tfplan
+        run: |
+          terraform plan -no-color -out=tfplan 2>&1 | tee plan_output.txt
+          echo "exitcode=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
         continue-on-error: true
 
       - name: Comment Plan on PR
         uses: actions/github-script@v7
         if: github.event_name == 'pull_request'
+        env:
+          PLAN: ${{ steps.plan.outputs.stdout }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const output = `#### Terraform Plan 📖
 
+            // Read plan output from file
+            let planOutput = 'Plan output not available';
+            try {
+              planOutput = fs.readFileSync('environments/production/plan_output.txt', 'utf8');
+              // Truncate if too long for GitHub comment (max 65536 chars)
+              if (planOutput.length > 60000) {
+                planOutput = planOutput.substring(0, 60000) + '\n\n... (truncated)';
+              }
+            } catch (e) {
+              console.log('Could not read plan output file:', e.message);
+            }
+
+            const fmtOutcome = '${{ steps.fmt.outcome }}';
+            const initOutcome = '${{ steps.init.outcome }}';
+            const validateOutcome = '${{ steps.validate.outcome }}';
+            const planOutcome = '${{ steps.plan.outcome }}';
+
+            const output = `### Terraform Plan Results
+
+            | Step | Status |
+            |------|--------|
+            | 🖌 Format | \`${fmtOutcome}\` |
+            | ⚙️ Init | \`${initOutcome}\` |
+            | 🤖 Validate | \`${validateOutcome}\` |
+            | 📖 Plan | \`${planOutcome}\` |
+
+            <details><summary>Show Plan Output</summary>
+
+            \`\`\`hcl
+            ${planOutput}
             \`\`\`
-            ${{ steps.plan.outputs.stdout || 'Plan output not available' }}
-            \`\`\`
 
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            </details>
 
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
+            *Pushed by: @${{ github.actor }}*`;
+
+            // Find existing comment to update instead of creating new one
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: output
-            })
+              issue_number: context.issue.number,
+            });
 
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('### Terraform Plan Results')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: output
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: output
+              });
+            }
+
+      - name: Fail on Plan Error
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
