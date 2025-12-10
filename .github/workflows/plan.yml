@@ -49,6 +49,8 @@ jobs:
         id: plan
         env:
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+          TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          TF_VAR_encryption_key: ${{ secrets.ENCRYPTION_KEY }}
         run: |
           terraform plan -no-color -out=tfplan 2>&1 | tee plan_output.txt
           echo "exitcode=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT

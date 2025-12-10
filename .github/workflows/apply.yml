@@ -39,6 +39,8 @@ jobs:
       - name: Terraform Apply
         env:
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+          TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          TF_VAR_encryption_key: ${{ secrets.ENCRYPTION_KEY }}
         run: terraform apply -auto-approve
 
       - name: Output Summary
