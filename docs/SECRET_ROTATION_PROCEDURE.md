@@ -231,7 +231,7 @@ Try using chat or research features in the application to confirm OpenAI integra
    ```bash
    # ✅ GOOD
    openai_api_key = "sk-proj-your-key-here"
-   
+
    # ❌ BAD
    openai_api_key = "sk-proj-ux4yvxn2jcvSuhxa..."
    ```

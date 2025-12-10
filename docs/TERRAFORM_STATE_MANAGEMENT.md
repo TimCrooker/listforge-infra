@@ -1,6 +1,6 @@
 # Terraform State Management Runbook
 
-**Last Updated**: December 10, 2025  
+**Last Updated**: December 10, 2025
 **Owner**: DevOps Team
 
 ---
@@ -405,8 +405,8 @@ aws dynamodb get-item \
 
 ## Contact & Escalation
 
-**Primary**: DevOps team  
-**Secondary**: Infrastructure lead  
+**Primary**: DevOps team
+**Secondary**: Infrastructure lead
 **Emergency**: AWS Support (for AWS API issues)
 
 ---
