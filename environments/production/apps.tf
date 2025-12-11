@@ -90,7 +90,6 @@ module "web" {
 }
 
 # Landing Page Service
-# NOTE: Using web image as placeholder until landing image is built
 module "landing" {
   source = "../../modules/app-service"
 
@@ -98,7 +97,7 @@ module "landing" {
   project     = var.project
   environment = var.environment
 
-  image  = "${local.ecr_registry}/listforge-web:latest"
+  image  = "${local.ecr_registry}/listforge-landing:latest"
   port   = 80
   cpu    = "256"
   memory = "512"
