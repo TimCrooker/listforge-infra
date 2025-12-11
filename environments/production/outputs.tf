@@ -62,6 +62,11 @@ output "api_custom_domain" {
   value       = module.api.custom_domain
 }
 
+output "api_service_arn" {
+  description = "API service ARN"
+  value       = module.api.service_arn
+}
+
 output "web_url" {
   description = "Web service URL"
   value       = module.web.service_url
@@ -70,6 +75,26 @@ output "web_url" {
 output "web_custom_domain" {
   description = "Web custom domain"
   value       = module.web.custom_domain
+}
+
+output "web_service_arn" {
+  description = "Web service ARN"
+  value       = module.web.service_arn
+}
+
+output "landing_url" {
+  description = "Landing service URL"
+  value       = module.landing.service_url
+}
+
+output "landing_custom_domain" {
+  description = "Landing custom domain"
+  value       = module.landing.custom_domain
+}
+
+output "landing_service_arn" {
+  description = "Landing service ARN"
+  value       = module.landing.service_arn
 }
 
 # VPC

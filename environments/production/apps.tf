@@ -27,13 +27,18 @@ locals {
   web_env = merge(local.common_env, {
     PORT = "80"
   })
+
+  # Landing-specific environment (static marketing site)
+  landing_env = merge(local.common_env, {
+    PORT = "80"
+  })
 }
 
 # ECR Repositories
 module "ecr" {
   source = "../../shared"
 
-  app_names = ["listforge-api", "listforge-web"]
+  app_names = ["listforge-api", "listforge-web", "listforge-landing"]
 }
 
 # API Service
@@ -75,6 +80,29 @@ module "web" {
   memory = "512"
 
   environment_variables = local.web_env
+
+  domain  = "app.${var.domain}"
+  zone_id = module.dns.zone_id
+
+  health_check_path = "/"
+  min_size          = 1
+  max_size          = 3
+}
+
+# Landing Page Service
+module "landing" {
+  source = "../../modules/app-service"
+
+  name        = "listforge-landing"
+  project     = var.project
+  environment = var.environment
+
+  image  = "${local.ecr_registry}/listforge-landing:latest"
+  port   = 80
+  cpu    = "256"
+  memory = "512"
+
+  environment_variables = local.landing_env
 
   domain  = var.domain
   zone_id = module.dns.zone_id
