@@ -16,11 +16,23 @@ locals {
     DATABASE_URL                 = module.database.connection_url
     REDIS_URL                    = module.cache.connection_url
     JWT_SECRET                   = var.jwt_secret
-    FRONTEND_URL                 = "https://${var.domain}"
+    FRONTEND_URL                 = "https://app.${var.domain},https://${var.domain}"
     LOG_LEVEL                    = "info"
     OPENAI_API_KEY               = var.openai_api_key
     ENCRYPTION_KEY               = var.encryption_key
     NODE_TLS_REJECT_UNAUTHORIZED = "0" # Required for RDS SSL connection
+
+    # Amazon Research & Pricing
+    KEEPA_API_KEY                = var.keepa_api_key
+
+    # Reverse Image Search
+    SERPAPI_API_KEY              = var.serpapi_api_key
+    GOOGLE_CLOUD_PROJECT         = var.google_cloud_project
+
+    # eBay Marketplace
+    EBAY_APP_ID                  = var.ebay_app_id
+    EBAY_CERT_ID                 = var.ebay_cert_id
+    EBAY_SANDBOX                 = "false"
   })
 
   # Web-specific environment (mostly static, API URL baked in at build time)

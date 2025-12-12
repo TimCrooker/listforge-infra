@@ -70,3 +70,37 @@ variable "encryption_key" {
   sensitive   = true
 }
 
+# Amazon Research & Pricing
+variable "keepa_api_key" {
+  description = "Keepa API key for Amazon pricing data"
+  type        = string
+  sensitive   = true
+}
+
+# Reverse Image Search
+variable "serpapi_api_key" {
+  description = "SerpAPI key for Google Lens reverse image search"
+  type        = string
+  sensitive   = true
+}
+
+variable "google_cloud_project" {
+  description = "Google Cloud Project ID for Vision API"
+  type        = string
+  sensitive   = false
+  default     = "list-forge"
+}
+
+# eBay Marketplace
+variable "ebay_app_id" {
+  description = "eBay Application ID (App ID)"
+  type        = string
+  sensitive   = true
+}
+
+variable "ebay_cert_id" {
+  description = "eBay Certificate ID (Client Secret)"
+  type        = string
+  sensitive   = true
+}
+
